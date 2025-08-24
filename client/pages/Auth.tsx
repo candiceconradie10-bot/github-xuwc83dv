@@ -28,10 +28,7 @@ export default function Auth() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    firstName: "",
-    lastName: "",
-    phone: "",
-    company: "",
+    displayName: "",
   });
 
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
@@ -79,17 +76,8 @@ export default function Auth() {
 
     // For signup, validate additional fields
     if (!isLogin) {
-      if (!formData.firstName.trim()) {
-        errors.firstName = "First name is required";
-      }
-      if (!formData.lastName.trim()) {
-        errors.lastName = "Last name is required";
-      }
-      if (
-        formData.phone &&
-        !/^[+]?[1-9][\d\s\-()]{7,15}$/.test(formData.phone)
-      ) {
-        errors.phone = "Please enter a valid phone number";
+      if (!formData.displayName.trim()) {
+        errors.displayName = "Display name is required";
       }
     }
 
@@ -115,7 +103,7 @@ export default function Auth() {
           description: "You have successfully logged in.",
         });
       } else {
-        await signup(formData);
+        await signup(formData.email, formData.password, formData.displayName);
         toast({
           title: "Account created!",
           description: "Welcome to APEX. You can now start shopping.",
@@ -359,105 +347,31 @@ export default function Auth() {
                   {/* Signup Fields */}
                   {!isLogin && (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="firstName"
-                            className="text-white font-medium"
-                          >
-                            First Name
-                          </Label>
-                          <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                              id="firstName"
-                              name="firstName"
-                              required
-                              value={formData.firstName}
-                              onChange={handleInputChange}
-                              className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-brand-red/50 focus:bg-white/20 transition-all duration-300"
-                              placeholder="John"
-                              aria-invalid={!!formErrors.firstName}
-                            />
-                            {formErrors.firstName && (
-                              <p className="text-red-400 text-xs mt-1 flex items-center">
-                                <AlertCircle className="h-3 w-3 mr-1" />
-                                {formErrors.firstName}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="lastName"
-                            className="text-white font-medium"
-                          >
-                            Last Name
-                          </Label>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="displayName"
+                          className="text-white font-medium"
+                        >
+                          Display Name
+                        </Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input
-                            id="lastName"
-                            name="lastName"
+                            id="displayName"
+                            name="displayName"
                             required
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            className="bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-brand-red/50 focus:bg-white/20 transition-all duration-300"
-                            placeholder="Doe"
-                            aria-invalid={!!formErrors.lastName}
-                          />
-                          {formErrors.lastName && (
-                            <p className="text-red-400 text-xs mt-1 flex items-center">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              {formErrors.lastName}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="phone"
-                          className="text-white font-medium"
-                        >
-                          Phone Number (Optional)
-                        </Label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="phone"
-                            name="phone"
-                            value={formData.phone}
+                            value={formData.displayName}
                             onChange={handleInputChange}
                             className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-brand-red/50 focus:bg-white/20 transition-all duration-300"
-                            placeholder="+27 11 123 4567"
-                            aria-invalid={!!formErrors.phone}
+                            placeholder="Your Name"
+                            aria-invalid={!!formErrors.displayName}
                           />
-                          {formErrors.phone && (
+                          {formErrors.displayName && (
                             <p className="text-red-400 text-xs mt-1 flex items-center">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              {formErrors.phone}
+                              {formErrors.displayName}
                             </p>
                           )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="company"
-                          className="text-white font-medium"
-                        >
-                          Company (Optional)
-                        </Label>
-                        <div className="relative">
-                          <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="company"
-                            name="company"
-                            value={formData.company}
-                            onChange={handleInputChange}
-                            className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-brand-red/50 focus:bg-white/20 transition-all duration-300"
-                            placeholder="Your Company Ltd"
-                          />
                         </div>
                       </div>
                     </>

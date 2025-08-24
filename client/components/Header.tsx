@@ -259,7 +259,7 @@ export function Header() {
                     className="text-white hover:bg-white/10 hover:text-brand-red transition-all duration-300 rounded-xl px-4 py-2 font-medium"
                   >
                     <User className="h-5 w-5 mr-2" />
-                    {authState.user?.firstName || "Account"}
+                    {authState.user?.displayName || "Account"}
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
 
@@ -267,7 +267,7 @@ export function Header() {
                     <div className="absolute top-full right-0 mt-2 w-64 bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden z-50">
                       <div className="p-4 border-b border-white/10">
                         <div className="text-white font-medium">
-                          {authState.user?.firstName} {authState.user?.lastName}
+                          {authState.user?.displayName || authState.user?.email}
                         </div>
                         <div className="text-gray-400 text-sm">
                           {authState.user?.email}
@@ -493,7 +493,7 @@ export function Header() {
               {authState.isAuthenticated ? (
                 <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/20">
                   <div className="text-white font-bold text-lg mb-2">
-                    {authState.user?.firstName} {authState.user?.lastName}
+                    {authState.user?.displayName || authState.user?.email}
                   </div>
                   <div className="text-gray-300 text-sm mb-4">
                     {authState.user?.email}

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +58,8 @@ interface Category {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const { state: authState, logout } = useAuth();
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,38 +67,23 @@ export default function AdminDashboard() {
 
   // Check authentication and admin status
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/admin-login');
-        return;
-      }
-
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.is_admin) {
-        alert('Access denied. Admin privileges required.');
-        navigate('/');
-        return;
-      }
-
-      setUser(user);
-      loadData();
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    if (!authState.isAuthenticated) {
       navigate('/admin-login');
+      return;
     }
-  };
+
+    if (!authState.user?.isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Admin privileges required.",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
+    }
+
+    loadData();
+  }, [authState.isAuthenticated, authState.user?.isAdmin, navigate, toast]);
 
   const loadData = async () => {
     try {
@@ -125,7 +113,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
     navigate('/');
   };
 
@@ -171,7 +159,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                <p className="text-white/80">Welcome back, {user?.email}</p>
+                <p className="text-white/80">Welcome back, {authState.user?.displayName || authState.user?.email}</p>
               </div>
             </div>
             <Button

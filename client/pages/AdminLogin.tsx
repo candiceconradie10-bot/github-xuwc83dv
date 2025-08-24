@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
   Shield,
@@ -19,52 +21,63 @@ import { useState } from "react";
 
 export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { state, login } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
+  // Redirect if already authenticated and is admin
   useEffect(() => {
-    // Add the custom login form handler
-    const handleLogin = async (e: Event) => {
-      e.preventDefault();
-
-      const email = (document.querySelector("#email") as HTMLInputElement)
-        ?.value;
-      const password = (document.querySelector("#password") as HTMLInputElement)
-        ?.value;
-
-      if (!email || !password) {
-        alert("Please fill in all fields");
-        return;
-      }
-
-      try {
-        // @ts-ignore - window.supabase is available globally
-        const { data, error } = await window.supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          alert("Login failed: " + error.message);
-        } else {
-          alert("Login successful!");
-          window.location.href = "/admin-dashboard"; // Redirect to admin dashboard
-        }
-      } catch (err) {
-        alert("Login error: " + (err as Error).message);
-      }
-    };
-
-    const form = document.querySelector("#loginForm");
-    if (form) {
-      form.addEventListener("submit", handleLogin);
+    if (state.isAuthenticated && state.user?.isAdmin) {
+      navigate('/admin-dashboard');
     }
+  }, [state.isAuthenticated, state.user?.isAdmin, navigate]);
 
-    // Cleanup
-    return () => {
-      if (form) {
-        form.removeEventListener("submit", handleLogin);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      await login(formData.email, formData.password);
+      
+      // Check if user is admin after login
+      if (state.user?.isAdmin) {
+        toast({
+          title: "Admin Access Granted",
+          description: "Welcome to the admin dashboard.",
+        });
+        navigate('/admin-dashboard');
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "Admin privileges required to access this area.",
+          variant: "destructive",
+        });
+        await logout();
       }
-    };
-  }, []);
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center relative overflow-hidden">
@@ -135,7 +148,7 @@ export default function AdminLogin() {
             </CardHeader>
 
             <CardContent className="space-y-6 relative z-10">
-              <form id="loginForm" className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email Field */}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white font-medium">
@@ -148,6 +161,8 @@ export default function AdminLogin() {
                       name="email"
                       type="email"
                       required
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="pl-10 h-12 rounded-xl bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-brand-red/50 focus:bg-white/20 transition-all duration-300 text-base"
                       placeholder="admin@apex.com"
                     />
@@ -166,6 +181,8 @@ export default function AdminLogin() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       required
+                      value={formData.password}
+                      onChange={handleInputChange}
                       className="pl-10 pr-10 h-12 rounded-xl bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-brand-red/50 focus:bg-white/20 transition-all duration-300 text-base"
                       placeholder="Enter admin password"
                     />
@@ -189,9 +206,19 @@ export default function AdminLogin() {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-brand-red to-red-600 hover:from-red-600 hover:to-brand-red text-white font-bold py-4 rounded-xl shadow-xl mobile-shadow-red transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation text-base"
+                  disabled={isSubmitting || state.isLoading}
                 >
-                  <Settings className="mr-2 h-5 w-5" />
-                  Access Admin Dashboard
+                  {isSubmitting || state.isLoading ? (
+                    <div className="flex items-center">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                      Signing In...
+                    </div>
+                  ) : (
+                    <>
+                      <Settings className="mr-2 h-5 w-5" />
+                      Access Admin Dashboard
+                    </>
+                  )}
                 </Button>
               </form>
 

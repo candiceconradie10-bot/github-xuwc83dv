@@ -6,26 +6,14 @@ import React, {
   ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  company?: string;
-  addresses?: Address[];
-}
-
-export interface Address {
-  id: string;
-  type: "shipping" | "billing";
-  address: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  country: string;
-  isDefault?: boolean;
+  displayName?: string;
+  isAdmin: boolean;
+  createdAt: string;
 }
 
 interface AuthState {
@@ -46,7 +34,7 @@ type AuthAction =
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
@@ -99,19 +87,10 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 interface AuthContextType {
   state: AuthState;
   login: (email: string, password: string) => Promise<void>;
-  signup: (userData: SignupData) => Promise<void>;
-  logout: () => void;
+  signup: (email: string, password: string, displayName?: string) => Promise<void>;
+  logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
   clearError: () => void;
-}
-
-interface SignupData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  company?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -131,128 +110,129 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for stored auth token on mount
+  // Check for existing session on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("apex_user");
-    const storedToken = localStorage.getItem("apex_token");
+    checkSession();
 
-    if (storedUser && storedToken) {
-      try {
-        const user = JSON.parse(storedUser);
-        dispatch({ type: "AUTH_SUCCESS", payload: user });
-      } catch (error) {
-        localStorage.removeItem("apex_user");
-        localStorage.removeItem("apex_token");
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          await loadUserProfile(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          dispatch({ type: "LOGOUT" });
+        }
       }
-    }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const checkSession = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await loadUserProfile(session.user);
+      } else {
+        dispatch({ type: "LOGOUT" });
+      }
+    } catch (error) {
+      console.error("Session check error:", error);
+      dispatch({ type: "LOGOUT" });
+    }
+  };
+
+  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (error) {
+        console.error("Profile load error:", error);
+        dispatch({ type: "AUTH_ERROR", payload: "Failed to load user profile" });
+        return;
+      }
+
+      const user: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        displayName: profile?.display_name || supabaseUser.email?.split('@')[0],
+        isAdmin: profile?.is_admin || false,
+        createdAt: profile?.created_at || supabaseUser.created_at,
+      };
+
+      dispatch({ type: "AUTH_SUCCESS", payload: user });
+    } catch (error) {
+      console.error("Profile load error:", error);
+      dispatch({ type: "AUTH_ERROR", payload: "Failed to load user profile" });
+    }
+  };
 
   const login = async (email: string, password: string): Promise<void> => {
     dispatch({ type: "AUTH_START" });
 
     try {
-      // Simulate API call - in real app, this would be an actual API request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // Mock validation - in real app, validate against backend
-      if (email && password.length >= 6) {
-        const user: User = {
-          id: `user_${Date.now()}`,
-          email,
-          firstName: email.split("@")[0].split(".")[0] || "User",
-          lastName: email.split("@")[0].split(".")[1] || "Name",
-          phone: "",
-          company: "",
-          addresses: [
-            {
-              id: "addr_1",
-              type: "shipping",
-              address: "123 Business Street",
-              city: "Johannesburg",
-              province: "Gauteng",
-              postalCode: "2000",
-              country: "South Africa",
-              isDefault: true,
-            },
-          ],
-        };
-
-        // Store in localStorage (in real app, handle JWT tokens properly)
-        localStorage.setItem("apex_user", JSON.stringify(user));
-        localStorage.setItem("apex_token", `token_${Date.now()}`);
-
-        dispatch({ type: "AUTH_SUCCESS", payload: user });
-      } else {
-        throw new Error(
-          "Invalid email or password. Password must be at least 6 characters.",
-        );
+      if (error) {
+        throw error;
       }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Login failed";
+
+      if (data.user) {
+        await loadUserProfile(data.user);
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || "Login failed";
       dispatch({ type: "AUTH_ERROR", payload: errorMessage });
       throw error;
     }
   };
 
-  const signup = async (userData: SignupData): Promise<void> => {
+  const signup = async (email: string, password: string, displayName?: string): Promise<void> => {
     dispatch({ type: "AUTH_START" });
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName || email.split('@')[0],
+          }
+        }
+      });
 
-      // Mock validation
-      if (
-        !userData.email ||
-        !userData.password ||
-        !userData.firstName ||
-        !userData.lastName
-      ) {
-        throw new Error("All required fields must be filled");
+      if (error) {
+        throw error;
       }
 
-      if (userData.password.length < 6) {
-        throw new Error("Password must be at least 6 characters");
+      if (data.user) {
+        await loadUserProfile(data.user);
       }
-
-      const user: User = {
-        id: `user_${Date.now()}`,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        phone: userData.phone || "",
-        company: userData.company || "",
-        addresses: [],
-      };
-
-      // Store in localStorage
-      localStorage.setItem("apex_user", JSON.stringify(user));
-      localStorage.setItem("apex_token", `token_${Date.now()}`);
-
-      dispatch({ type: "AUTH_SUCCESS", payload: user });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Signup failed";
+    } catch (error: any) {
+      const errorMessage = error.message || "Signup failed";
       dispatch({ type: "AUTH_ERROR", payload: errorMessage });
       throw error;
     }
   };
 
-  const logout = (): void => {
-    localStorage.removeItem("apex_user");
-    localStorage.removeItem("apex_token");
-    dispatch({ type: "LOGOUT" });
+  const logout = async (): Promise<void> => {
+    try {
+      await supabase.auth.signOut();
+      dispatch({ type: "LOGOUT" });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const updateUser = (userData: Partial<User>): void => {
     dispatch({ type: "UPDATE_USER", payload: userData });
-
-    // Update localStorage
-    if (state.user) {
-      const updatedUser = { ...state.user, ...userData };
-      localStorage.setItem("apex_user", JSON.stringify(updatedUser));
-    }
   };
 
   const clearError = (): void => {
