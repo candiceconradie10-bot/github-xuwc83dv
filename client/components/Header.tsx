@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { OptimizedImage } from "./OptimizedImage";
+import { Logo } from "./Logo";
 import {
   Search,
   ShoppingCart,
@@ -221,11 +221,8 @@ export function Header() {
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets%2F5ed541bb7f2f4c82a9c16c7e0b0da0c6%2F9bb429a85e0b4d2d88ed91995554ee98"
-                alt="APEX Logo"
-                className="h-12 w-auto object-contain"
-              />
+              <Logo showText={false} className="sm:hidden" />
+              <Logo className="hidden sm:flex" />
             </Link>
 
             {/* Desktop Search */}

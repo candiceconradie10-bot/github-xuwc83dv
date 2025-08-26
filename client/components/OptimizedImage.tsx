@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getOptimizedImageUrl, createPlaceholderImage, createImageObserver } from "@/utils/imageOptimization";
 
 interface OptimizedImageProps {
   src: string;
@@ -21,29 +22,20 @@ export function OptimizedImage({
   priority = false,
   sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
   quality = 80,
-  placeholder = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDgwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9IiMxYTFhMWEiLz48L3N2Zz4=",
+  placeholder,
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(priority);
-  const [imageSrc, setImageSrc] = useState(placeholder);
-
-  // Generate optimized image URL
-  const getOptimizedUrl = (
-    originalSrc: string,
-    targetWidth: number,
-    targetQuality: number,
-  ) => {
-    if (originalSrc.includes("cdn.builder.io")) {
-      return `${originalSrc}?format=webp&width=${targetWidth}&quality=${targetQuality}&fit=fill`;
-    }
-    return originalSrc;
-  };
+  const [imageSrc, setImageSrc] = useState(
+    placeholder || createPlaceholderImage(width, height)
+  );
+  const [hasError, setHasError] = useState(false);
 
   // Intersection Observer for lazy loading
   useEffect(() => {
     if (priority) return;
 
-    const observer = new IntersectionObserver(
+    const observer = createImageObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -55,7 +47,7 @@ export function OptimizedImage({
       {
         rootMargin: "50px",
         threshold: 0.1,
-      },
+      }
     );
 
     const imgElement = document.querySelector(`[data-src="${src}"]`);
@@ -68,17 +60,21 @@ export function OptimizedImage({
 
   // Load image when in view
   useEffect(() => {
-    if (isInView && !isLoaded) {
-      const optimizedSrc = getOptimizedUrl(src, width, quality);
+    if (isInView && !isLoaded && !hasError) {
+      const optimizedSrc = getOptimizedImageUrl(src, { width, quality });
 
       const img = new Image();
       img.onload = () => {
         setImageSrc(optimizedSrc);
         setIsLoaded(true);
       };
+      img.onerror = () => {
+        setHasError(true);
+        // Keep placeholder on error
+      };
       img.src = optimizedSrc;
     }
-  }, [isInView, src, width, quality, isLoaded]);
+  }, [isInView, src, width, quality, isLoaded, hasError]);
 
   return (
     <img

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Logo } from "./Logo";
 import {
   Facebook,
   Twitter,
@@ -45,13 +46,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets%2F5ed541bb7f2f4c82a9c16c7e0b0da0c6%2F9bb429a85e0b4d2d88ed91995554ee98"
-                alt="APEX Logo"
-                className="h-12 w-auto object-contain"
-              />
-            </div>
+            <Logo />
             <p className="text-gray-300 text-sm leading-relaxed">
               W.O.S APEX is your one-stop online destination for premium
               clothing, durable workwear and curated gifting. Driven by W.O.S,

@@ -139,7 +139,7 @@ export const categories = [
   {
     title: "Corporate Gifts",
     description: "Premium branded items for your business",
-    image: "https://images.pexels.com/photos/6069112/pexels-photo-6069112.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+    image: "https://images.pexels.com/photos/6069112/pexels-photo-6069112.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/gifting",
     id: "corporate-gifts",
     count: products.filter((p) => p.category === "corporate-gifts").length,
@@ -147,7 +147,7 @@ export const categories = [
   {
     title: "Clothing",
     description: "Professional apparel for your team",
-    image: "https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+    image: "https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/corporate-clothing",
     id: "clothing",
     count: products.filter((p) => p.category === "corporate-clothing").length,
@@ -155,7 +155,7 @@ export const categories = [
   {
     title: "Workwear",
     description: "Durable clothing for every industry",
-    image: "https://images.pexels.com/photos/5473955/pexels-photo-5473955.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+    image: "https://images.pexels.com/photos/5473955/pexels-photo-5473955.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/workwear",
     id: "workwear",
     count: products.filter((p) => p.category === "workwear").length,
@@ -163,7 +163,7 @@ export const categories = [
   {
     title: "Headwear & Accessories",
     description: "Caps, hats, and promotional accessories",
-    image: "https://images.pexels.com/photos/1124465/pexels-photo-1124465.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop",
+    image: "https://images.pexels.com/photos/1124465/pexels-photo-1124465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/headwear",
     id: "headwear",
     count: products.filter((p) => p.category === "headwear-and-accessories")
