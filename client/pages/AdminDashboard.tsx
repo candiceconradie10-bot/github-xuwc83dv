@@ -41,20 +41,10 @@ import {
   Crown,
 } from "lucide-react";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  stock: number | null;
-  image_url: string | null;
-  category_id: string | null;
-}
+import type { Database } from "@/lib/supabase";
 
-interface Category {
-  id: string;
-  name: string;
-}
+type Product = Database['public']['Tables']['products']['Row'];
+type Category = Database['public']['Tables']['categories']['Row'];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { SEO, generateFAQSchema } from "@/components/SEO";
-import { categories } from "@/data/products";
+import { useProducts } from "@/hooks/use-products";
 import {
   ArrowRight,
   Star,
@@ -41,6 +41,8 @@ import {
 } from "lucide-react";
 
 export default function Index() {
+  const { categories, loading } = useProducts();
+
   // SEO structured data for FAQ
   const faqData = [
     {
@@ -65,7 +67,14 @@ export default function Index() {
     },
   ];
 
-  const featuredCategories = categories.slice(0, 6);
+  const featuredCategories = categories.slice(0, 6).map(cat => ({
+    title: cat.name,
+    description: cat.description || `Premium ${cat.name.toLowerCase()} products`,
+    image: cat.image_url || "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+    href: `/${cat.slug}`,
+    id: cat.slug,
+    count: 100 // This would come from a product count query in a real app
+  }));
 
   // Marketing slideshow banners
   const marketingSlides = [
@@ -104,6 +113,16 @@ export default function Index() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-brand-red/30 border-t-brand-red rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading APEX products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

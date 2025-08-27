@@ -1,5 +1,6 @@
 import { Product } from "@/contexts/CartContext";
 
+// Legacy product data for fallback - will be replaced by Supabase data
 export const products: Product[] = [
   {
     id: 1,
@@ -45,94 +46,6 @@ export const products: Product[] = [
     rating: 4.6,
     reviews: 203,
   },
-  {
-    id: 5,
-    name: "Corporate Hoodie",
-    price: 399,
-    image: "https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-clothing",
-    description:
-      "Comfortable cotton hoodie with modern fit. Ideal for casual corporate wear and team building events.",
-    rating: 4.5,
-    reviews: 167,
-  },
-  {
-    id: 6,
-    name: "Promotional Tote Bag",
-    price: 45,
-    image: "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-gifts",
-    description:
-      "Eco-friendly canvas tote bag perfect for promotional campaigns and corporate events.",
-    rating: 4.4,
-    reviews: 289,
-  },
-  {
-    id: 7,
-    name: "Steel Water Bottle",
-    price: 179,
-    image: "https://images.pexels.com/photos/3766230/pexels-photo-3766230.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-gifts",
-    description:
-      "Insulated stainless steel water bottle with custom laser engraving options.",
-    rating: 4.7,
-    reviews: 198,
-  },
-  {
-    id: 8,
-    name: "Business Card Holder",
-    price: 125,
-    image: "https://images.pexels.com/photos/6069112/pexels-photo-6069112.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-gifts",
-    description:
-      "Elegant metal business card holder with custom engraving. Professional and durable.",
-    rating: 4.6,
-    reviews: 145,
-  },
-  {
-    id: 9,
-    name: "Corporate T-Shirt",
-    price: 159,
-    image: "https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-clothing",
-    description:
-      "Premium cotton t-shirt available in various colors. Perfect for company uniforms and events.",
-    rating: 4.5,
-    reviews: 234,
-  },
-  {
-    id: 10,
-    name: "Leather Portfolio",
-    price: 749,
-    image: "https://images.pexels.com/photos/6069112/pexels-photo-6069112.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-gifts",
-    description:
-      "Premium leather portfolio with notepad, pen holder, and business card slots.",
-    rating: 4.8,
-    reviews: 76,
-  },
-  {
-    id: 11,
-    name: "Safety Helmet",
-    price: 299,
-    image: "https://images.pexels.com/photos/5473955/pexels-photo-5473955.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "workwear",
-    description:
-      "ANSI certified safety helmet with adjustable suspension and custom logo options.",
-    rating: 4.9,
-    reviews: 134,
-  },
-  {
-    id: 12,
-    name: "Fleece Jacket",
-    price: 459,
-    image: "https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    category: "corporate-clothing",
-    description:
-      "Warm fleece jacket perfect for outdoor corporate events and team activities.",
-    rating: 4.6,
-    reviews: 188,
-  },
 ];
 
 export const categories = [
@@ -142,7 +55,7 @@ export const categories = [
     image: "https://images.pexels.com/photos/6069112/pexels-photo-6069112.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/gifting",
     id: "corporate-gifts",
-    count: products.filter((p) => p.category === "corporate-gifts").length,
+    count: 150,
   },
   {
     title: "Clothing",
@@ -150,7 +63,7 @@ export const categories = [
     image: "https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/corporate-clothing",
     id: "clothing",
-    count: products.filter((p) => p.category === "corporate-clothing").length,
+    count: 200,
   },
   {
     title: "Workwear",
@@ -158,7 +71,7 @@ export const categories = [
     image: "https://images.pexels.com/photos/5473955/pexels-photo-5473955.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/workwear",
     id: "workwear",
-    count: products.filter((p) => p.category === "workwear").length,
+    count: 180,
   },
   {
     title: "Headwear & Accessories",
@@ -166,12 +79,11 @@ export const categories = [
     image: "https://images.pexels.com/photos/1124465/pexels-photo-1124465.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     href: "/headwear",
     id: "headwear",
-    count: products.filter((p) => p.category === "headwear-and-accessories")
-      .length,
+    count: 120,
   },
 ];
 
-// Helper functions
+// Helper functions - these will be replaced by Supabase hooks
 export const getProductsByCategory = (category: string): Product[] => {
   return products.filter((product) => product.category === category);
 };
