@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/ProductCard";
-import { getProductsByCategory } from "@/data/products";
+import { useProducts } from "@/hooks/use-products";
+import { useEffect, useState } from "react";
 import {
   Filter,
   Grid,
@@ -22,13 +23,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import type { Database } from "@/lib/supabase";
+type Product = Database['public']['Tables']['products']['Row'];
+
 // Category URL to display name mapping
 const getCategoryDisplayName = (categoryParam: string | undefined): string => {
   const categoryMap: Record<string, string> = {
-    "corporate-gifts": "CLOTHING",
-    "corporate-clothing": "WORKWEAR",
-    workwear: "HEADWEAR",
-    "headwear-and-accessories": "SAFETY GEAR",
+    "corporate-gifts": "CORPORATE GIFTS",
+    "corporate-clothing": "CORPORATE CLOTHING",
+    workwear: "WORKWEAR",
+    "headwear-accessories": "HEADWEAR & ACCESSORIES",
+    "safety-gear": "SAFETY GEAR",
     gifting: "GIFTING",
     display: "DISPLAY",
     footwear: "FOOTWEAR",
@@ -42,10 +47,53 @@ const getCategoryDisplayName = (categoryParam: string | undefined): string => {
 
 export default function ProductCategory() {
   const { category } = useParams();
+  const { getProductsByCategory } = useProducts();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const categoryDisplayName = getCategoryDisplayName(category);
-  const categoryProducts = category ? getProductsByCategory(category) : [];
+
+  useEffect(() => {
+    const loadCategoryProducts = async () => {
+      if (!category) return;
+      
+      setLoading(true);
+      try {
+        const products = await getProductsByCategory(category);
+        // Convert database products to cart-compatible format
+        const convertedProducts = products.map(p => ({
+          id: parseInt(p.id.slice(-8), 16), // Convert UUID to number for cart compatibility
+          name: p.name,
+          price: p.price,
+          image: p.image_url || "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
+          category: category,
+          description: p.description || "",
+          rating: p.rating || 0,
+          reviews: p.review_count || 0,
+        }));
+        setCategoryProducts(convertedProducts);
+      } catch (error) {
+        console.error('Error loading category products:', error);
+        setCategoryProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategoryProducts();
+  }, [category, getProductsByCategory]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-brand-red/30 border-t-brand-red rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading {categoryDisplayName}...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
