@@ -223,94 +223,129 @@ export interface Database {
 export const dbHelpers = {
   // Get all active categories
   async getCategories() {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order');
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
   },
 
   // Get products by category
   async getProductsByCategory(categorySlug: string) {
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        categories!inner(slug)
-      `)
-      .eq('categories.slug', categorySlug)
-      .eq('is_active', true)
-      .order('name');
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories!inner(slug)
+        `)
+        .eq('categories.slug', categorySlug)
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching products by category:', error);
+      return [];
+    }
   },
 
   // Get featured products
   async getFeaturedProducts(limit: number = 6) {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('is_featured', true)
-      .eq('is_active', true)
-      .order('rating', { ascending: false })
-      .limit(limit);
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_featured', true)
+        .eq('is_active', true)
+        .order('rating', { ascending: false })
+        .limit(limit);
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching featured products:', error);
+      return [];
+    }
   },
 
   // Search products
   async searchProducts(query: string) {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('is_active', true)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
-      .order('rating', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`)
+        .order('rating', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error searching products:', error);
+      return [];
+    }
   },
 
   // Create order
   async createOrder(orderData: any) {
-    const { data, error } = await supabase
-      .from('orders')
-      .insert([orderData])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw error;
+    }
   },
 
   // Create order items
   async createOrderItems(orderItems: any[]) {
-    const { data, error } = await supabase
-      .from('order_items')
-      .insert(orderItems)
-      .select();
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+        .select();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating order items:', error);
+      throw error;
+    }
   },
 
   // Get user orders
   async getUserOrders(userId: string) {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items(*)
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items(*)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching user orders:', error);
+      return [];
+    }
   }
 };

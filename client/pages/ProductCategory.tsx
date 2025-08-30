@@ -48,7 +48,7 @@ export default function ProductCategory() {
   const { category } = useParams();
   const { getProductsByCategory } = useProducts();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [categoryProducts, setCategoryProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const categoryDisplayName = getCategoryDisplayName(category);

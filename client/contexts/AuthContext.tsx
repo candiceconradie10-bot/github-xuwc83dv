@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .eq('id', supabaseUser.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error("Profile load error:", error);
         dispatch({ type: "AUTH_ERROR", payload: "Failed to load user profile" });
         return;

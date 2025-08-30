@@ -66,7 +66,6 @@ export default function AdminLogin() {
           description: "Admin privileges required to access this area.",
           variant: "destructive",
         });
-        await logout();
       }
     } catch (error: any) {
       toast({
